@@ -1,6 +1,6 @@
 This is a StackBlur implementation for iOS based on the algorithm of:
 
- http://incubator.quasimondo.com/processing/stackblur.pde
+ http://incubator.quasimondo.com
 
 
 To use it, just import the UIImage+StackBlur.h and .m in your project.
