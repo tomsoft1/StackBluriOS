@@ -92,6 +92,12 @@
 			E9A0210E14E1243500B451FC /* PBXTextBookmark */ = E9A0210E14E1243500B451FC /* PBXTextBookmark */;
 			E9A0210F14E1243500B451FC /* PBXTextBookmark */ = E9A0210F14E1243500B451FC /* PBXTextBookmark */;
 			E9A0211014E1243500B451FC /* PBXTextBookmark */ = E9A0211014E1243500B451FC /* PBXTextBookmark */;
+			E9A0213A14E126C300B451FC /* PBXTextBookmark */ = E9A0213A14E126C300B451FC /* PBXTextBookmark */;
+			E9A0213B14E126C500B451FC /* PBXTextBookmark */ = E9A0213B14E126C500B451FC /* PBXTextBookmark */;
+			E9A0213C14E126ED00B451FC /* PBXTextBookmark */ = E9A0213C14E126ED00B451FC /* PBXTextBookmark */;
+			E9A0213D14E126ED00B451FC /* PBXTextBookmark */ = E9A0213D14E126ED00B451FC /* PBXTextBookmark */;
+			E9A0213E14E126ED00B451FC /* PBXTextBookmark */ = E9A0213E14E126ED00B451FC /* PBXTextBookmark */;
+			E9A0213F14E126ED00B451FC /* PBXTextBookmark */ = E9A0213F14E126ED00B451FC /* PBXTextBookmark */;
 		};
 		sourceControlManager = E9A020C214E1207000B451FC /* Source Control */;
 		userBuildSettings = {
@@ -186,16 +192,16 @@
 	};
 	E9A020DF14E1220000B451FC /* UIImage+StackBlur.h */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {519, 237}}";
-			sepNavSelRange = "{178, 0}";
-			sepNavVisRange = "{0, 260}";
+			sepNavIntBoundsRect = "{{0, 0}, {519, 247}}";
+			sepNavSelRange = "{181, 0}";
+			sepNavVisRange = "{0, 300}";
 		};
 	};
 	E9A020E014E1220000B451FC /* UIImage+StackBlur.m */ = {
 		uiCtxt = {
-			sepNavIntBoundsRect = "{{0, 0}, {600, 3380}}";
-			sepNavSelRange = "{558, 0}";
-			sepNavVisRange = "{236, 440}";
+			sepNavIntBoundsRect = "{{0, 0}, {600, 3263}}";
+			sepNavSelRange = "{213, 94}";
+			sepNavVisRange = "{27, 325}";
 		};
 	};
 	E9A020ED14E122B100B451FC /* XCBuildMessageTextBookmark */ = {
@@ -204,7 +210,7 @@
 		fRef = E9A020DF14E1220000B451FC /* UIImage+StackBlur.h */;
 		fallbackIsa = XCBuildMessageTextBookmark;
 		rLen = 1;
-		rLoc = 14;
+		rLoc = 17;
 		rType = 1;
 	};
 	E9A020EE14E122B100B451FC /* PBXTextBookmark */ = {
@@ -212,7 +218,7 @@
 		fRef = E9A020DF14E1220000B451FC /* UIImage+StackBlur.h */;
 		name = "UIImage+StackBlur.h: 15";
 		rLen = 0;
-		rLoc = 259;
+		rLoc = 300;
 		rType = 0;
 		vrLen = 257;
 		vrLoc = 3;
@@ -252,7 +258,7 @@
 		fRef = E9A020DF14E1220000B451FC /* UIImage+StackBlur.h */;
 		name = "UIImage+StackBlur.h: 12";
 		rLen = 0;
-		rLoc = 178;
+		rLoc = 219;
 		rType = 0;
 		vrLen = 260;
 		vrLoc = 0;
@@ -326,5 +332,65 @@
 		rType = 0;
 		vrLen = 339;
 		vrLoc = 1354;
+	};
+	E9A0213A14E126C300B451FC /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E9A020DF14E1220000B451FC /* UIImage+StackBlur.h */;
+		name = "UIImage+StackBlur.h: 15";
+		rLen = 0;
+		rLoc = 300;
+		rType = 0;
+		vrLen = 257;
+		vrLoc = 3;
+	};
+	E9A0213B14E126C500B451FC /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E9A020DF14E1220000B451FC /* UIImage+StackBlur.h */;
+		name = "UIImage+StackBlur.h: 15";
+		rLen = 0;
+		rLoc = 300;
+		rType = 0;
+		vrLen = 257;
+		vrLoc = 3;
+	};
+	E9A0213C14E126ED00B451FC /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 28D7ACF70DDB3853001CB0EB /* stackBlurViewController.m */;
+		name = "stackBlurViewController.m: 67";
+		rLen = 0;
+		rLoc = 1647;
+		rType = 0;
+		vrLen = 339;
+		vrLoc = 1354;
+	};
+	E9A0213D14E126ED00B451FC /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E9A020DF14E1220000B451FC /* UIImage+StackBlur.h */;
+		name = "UIImage+StackBlur.h: 10";
+		rLen = 0;
+		rLoc = 181;
+		rType = 0;
+		vrLen = 300;
+		vrLoc = 0;
+	};
+	E9A0213E14E126ED00B451FC /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E9A020E014E1220000B451FC /* UIImage+StackBlur.m */;
+		name = "UIImage+StackBlur.m: 22";
+		rLen = 0;
+		rLoc = 354;
+		rType = 0;
+		vrLen = 530;
+		vrLoc = 212;
+	};
+	E9A0213F14E126ED00B451FC /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E9A020E014E1220000B451FC /* UIImage+StackBlur.m */;
+		name = "UIImage+StackBlur.m: 15";
+		rLen = 94;
+		rLoc = 213;
+		rType = 0;
+		vrLen = 325;
+		vrLoc = 27;
 	};
 }
