@@ -14,8 +14,8 @@
 
 // Stackblur algorithm
 // from
-// http://incubator.quasimondo.com/processing/stackblur.pde
-//
+// http://incubator.quasimondo.com/processing/fast_blur_deluxe.php
+// by  Mario Klingemann
 
 - (UIImage*) stackBlur:(NSUInteger)inradius
 {

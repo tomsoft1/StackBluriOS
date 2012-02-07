@@ -1,7 +1,8 @@
 This is a StackBlur implementation for iOS based on the algorithm of:
 
- http://incubator.quasimondo.com
+http://incubator.quasimondo.com/processing/fast_blur_deluxe.php
 
+by Mario Klingemann
 
 To use it, just import the UIImage+StackBlur.h and .m in your project.
 
