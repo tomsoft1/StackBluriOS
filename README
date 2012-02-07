@@ -1,0 +1,17 @@
+This is a StackBlur implementation for iOS based on the algorithm of:
+
+ http://incubator.quasimondo.com/processing/stackblur.pde
+
+
+To use it, just import the UIImage+StackBlur.h and .m in your project.
+
+Then, to blur an image:
+
+UIImage *newIma=[oldIma stackBlur:radius];
+
+
+Radius must be higher than 1 ...
+
+thomas.landspurg@gmail.com
+
+
