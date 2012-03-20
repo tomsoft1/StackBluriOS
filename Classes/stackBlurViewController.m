@@ -67,6 +67,7 @@
 	imagePreview.image=[source stackBlur:sender.value];
 }	
 - (void)dealloc {
+    [imagePreview dealloc];
     [super dealloc];
 }
 

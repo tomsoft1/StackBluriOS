@@ -21,7 +21,11 @@
 {
 	int radius=inradius; // Transform unsigned into signed for further operations
 	
-	//	return [other applyBlendFilter:filterOverlay  other:self context:nil];
+	if (radius<1){
+		return self;
+	}
+	
+    //	return [other applyBlendFilter:filterOverlay  other:self context:nil];
 	// First get the image into your data buffer
 	
 	CGImageRef inImage = self.CGImage;
@@ -38,9 +42,7 @@
 											 CGImageGetBitmapInfo(inImage) 
 											 ); 
 	
-	if (radius<1){
-		return self;
-	}
+
 	int w=CGImageGetWidth(inImage);
 	int h=CGImageGetHeight(inImage);
 	int wm=w-1;
