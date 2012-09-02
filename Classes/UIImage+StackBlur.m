@@ -255,7 +255,7 @@
 	CGContextRelease(ctx);	
 	
 	//	CFRelease(m_DataRef);
-	UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
+	UIImage *finalImage = [UIImage imageWithCGImage:imageRef scale:self.scale orientation:UIImageOrientationUp];
 	CGImageRelease(imageRef);	
 	CFRelease(m_DataRef);
 	return finalImage;
