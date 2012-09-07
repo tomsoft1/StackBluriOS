@@ -30,8 +30,10 @@
 	
 	CGImageRef inImage = self.CGImage;
 	CFDataRef m_DataRef = CGDataProviderCopyData(CGImageGetDataProvider(inImage));  
-	UInt8 * m_PixelBuf = (UInt8 *) CFDataGetBytePtr(m_DataRef);  	
-	
+    UInt8 * m_PixelBuf=malloc(CFDataGetLength(m_DataRef));
+    CFDataGetBytes(m_DataRef,
+                   CFRangeMake(0,CFDataGetLength(m_DataRef)) ,
+                   m_PixelBuf);
 	
 	CGContextRef ctx = CGBitmapContextCreate(m_PixelBuf,  
 											 CGImageGetWidth(inImage),  
@@ -254,10 +256,10 @@
 	CGImageRef imageRef = CGBitmapContextCreateImage(ctx);  
 	CGContextRelease(ctx);	
 	
-	//	CFRelease(m_DataRef);
-	UIImage *finalImage = [UIImage imageWithCGImage:imageRef scale:self.scale orientation:UIImageOrientationUp];
+	UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
 	CGImageRelease(imageRef);	
 	CFRelease(m_DataRef);
+    free(m_PixelBuf);
 	return finalImage;
 }
 
