@@ -14,5 +14,7 @@
 
 @interface UIImage (StackBlur) 
 	- (UIImage*) stackBlur:(NSUInteger)radius;
+    - (UIImage *) normalize ;
+
 @end
 

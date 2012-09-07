@@ -27,8 +27,12 @@
 	
     //	return [other applyBlendFilter:filterOverlay  other:self context:nil];
 	// First get the image into your data buffer
-	
-	CGImageRef inImage = self.CGImage;
+    CGImageRef inImage = self.CGImage;
+    int nbPerCompt=CGImageGetBitsPerPixel(inImage);
+    if(nbPerCompt!=32){
+        UIImage *tmpImage=[self normalize];
+        inImage=tmpImage.CGImage;
+    }
 	CFDataRef m_DataRef = CGDataProviderCopyData(CGImageGetDataProvider(inImage));  
     UInt8 * m_PixelBuf=malloc(CFDataGetLength(m_DataRef));
     CFDataGetBytes(m_DataRef,
@@ -261,6 +265,29 @@
 	CFRelease(m_DataRef);
     free(m_PixelBuf);
 	return finalImage;
+}
+
+
+- (UIImage *) normalize {
+    
+    CGColorSpaceRef genericColorSpace = CGColorSpaceCreateDeviceRGB();
+    CGContextRef thumbBitmapCtxt = CGBitmapContextCreate(NULL,
+                                                         
+                                                         self.size.width,
+                                                         self.size.height,
+                                                         8, (4 * self.size.width),
+                                                         genericColorSpace,
+                                                         kCGImageAlphaPremultipliedLast);
+    CGColorSpaceRelease(genericColorSpace);
+    CGContextSetInterpolationQuality(thumbBitmapCtxt, kCGInterpolationDefault);
+    CGRect destRect = CGRectMake(0, 0, self.size.width, self.size.height);
+    CGContextDrawImage(thumbBitmapCtxt, destRect, self.CGImage);
+    CGImageRef tmpThumbImage = CGBitmapContextCreateImage(thumbBitmapCtxt);
+    CGContextRelease(thumbBitmapCtxt);   
+    UIImage *result = [UIImage imageWithCGImage:tmpThumbImage];
+    CGImageRelease(tmpThumbImage);
+    
+    return result;   
 }
 
 
