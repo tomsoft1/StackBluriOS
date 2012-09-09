@@ -24,7 +24,11 @@
 	if (radius<1){
 		return self;
 	}
-	
+    // Suggestion xidew to prevent crash if size is null
+	if (CGSizeEqualToSize(self.size, CGSizeZero)) {
+        return self;
+    }
+
     //	return [other applyBlendFilter:filterOverlay  other:self context:nil];
 	// First get the image into your data buffer
     CGImageRef inImage = self.CGImage;
