@@ -19,9 +19,9 @@ UIImage *myIma=[[UIImage imageNamed:@"blackWhite.png"] normalized];
 ...
 UIImage *blurIma=[myIm stackBlur:radius];
 
-
 Radius must be higher than 1 ...
 
 thomas.landspurg@gmail.com
 
 
+License: New BSD license.
