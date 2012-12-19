@@ -301,25 +301,25 @@ either expressed or implied, of the FreeBSD Project.
 
 
 - (UIImage *) normalize {
-    
+    int width = self.size.width;
+    int height = self.size.height;
     CGColorSpaceRef genericColorSpace = CGColorSpaceCreateDeviceRGB();
     CGContextRef thumbBitmapCtxt = CGBitmapContextCreate(NULL,
-                                                         
-                                                         self.size.width,
-                                                         self.size.height,
-                                                         8, (4 * self.size.width),
+                                                         width,
+                                                         height,
+                                                         8, (4 * width),
                                                          genericColorSpace,
                                                          kCGImageAlphaPremultipliedLast);
     CGColorSpaceRelease(genericColorSpace);
     CGContextSetInterpolationQuality(thumbBitmapCtxt, kCGInterpolationDefault);
-    CGRect destRect = CGRectMake(0, 0, self.size.width, self.size.height);
+    CGRect destRect = CGRectMake(0, 0, width, height);
     CGContextDrawImage(thumbBitmapCtxt, destRect, self.CGImage);
     CGImageRef tmpThumbImage = CGBitmapContextCreateImage(thumbBitmapCtxt);
-    CGContextRelease(thumbBitmapCtxt);   
+    CGContextRelease(thumbBitmapCtxt);
     UIImage *result = [UIImage imageWithCGImage:tmpThumbImage];
     CGImageRelease(tmpThumbImage);
     
-    return result;   
+    return result;
 }
 
 
