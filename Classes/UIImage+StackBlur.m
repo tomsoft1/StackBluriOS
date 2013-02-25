@@ -65,7 +65,8 @@ either expressed or implied, of the FreeBSD Project.
         UIImage *tmpImage=[self normalize];
         inImage=tmpImage.CGImage;
     }
-	CFDataRef m_DataRef = CGDataProviderCopyData(CGImageGetDataProvider(inImage));  
+    CFMutableDataRef m_DataRef = CFDataCreateMutableCopy(0, 0, CGDataProviderCopyData(CGImageGetDataProvider(inImage)));
+    
     UInt8 * m_PixelBuf=malloc(CFDataGetLength(m_DataRef));
     CFDataGetBytes(m_DataRef,
                    CFRangeMake(0,CFDataGetLength(m_DataRef)) ,
