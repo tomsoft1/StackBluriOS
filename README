@@ -10,6 +10,7 @@ Then, to blur an image:
 
 UIImage *newIma=[oldIma stackBlur:radius];
 
+You can also apply the method to a buffer directly if you dont'have access to the full UIImage (see applyStackBlurToBuffer)
 
 The algorithm expect an RGBA format (32 bits/pixel).
 If it's not the case, the image will be transformed in a 32 bits/pixel format at each call. You can also use the [UIImage normalize] function of the library to do it once
