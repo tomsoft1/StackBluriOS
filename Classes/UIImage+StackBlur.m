@@ -10,13 +10,13 @@ Copyright (c) 2012, T.LANDSPURG
  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met: 
+modification, are permitted provided that the following conditions are met:
 
 1. Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer. 
+list of conditions and the following disclaimer.
 2. Redistributions in binary form must reproduce the above copyright notice,
 this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution. 
+and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -30,7 +30,7 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The views and conclusions contained in the software and documentation are those
-of the authors and should not be interpreted as representing official policies, 
+of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
  */
 
@@ -48,7 +48,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 // by  Mario Klingemann
 
 - (UIImage*) stackBlur:(NSUInteger)inradius
-{	
+{
 	if (inradius < 1){
 		return self;
 	}
@@ -65,21 +65,21 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
         UIImage *tmpImage = [self normalize];
         inImage = tmpImage.CGImage;
     }
-    CFMutableDataRef m_DataRef = CFDataCreateMutableCopy(0, 0, CGDataProviderCopyData(CGImageGetDataProvider(inImage)));    
+    CFMutableDataRef m_DataRef = CFDataCreateMutableCopy(0, 0, CGDataProviderCopyData(CGImageGetDataProvider(inImage)));
     UInt8 * m_PixelBuf=malloc(CFDataGetLength(m_DataRef));
     CFDataGetBytes(m_DataRef,
                    CFRangeMake(0,CFDataGetLength(m_DataRef)) ,
                    m_PixelBuf);
-	
-	CGContextRef ctx = CGBitmapContextCreate(m_PixelBuf,  
-											 CGImageGetWidth(inImage),  
-											 CGImageGetHeight(inImage),  
+
+	CGContextRef ctx = CGBitmapContextCreate(m_PixelBuf,
+											 CGImageGetWidth(inImage),
+											 CGImageGetHeight(inImage),
 											 CGImageGetBitsPerComponent(inImage),
-											 CGImageGetBytesPerRow(inImage),  
-											 CGImageGetColorSpace(inImage),  
-											 CGImageGetBitmapInfo(inImage) 
+											 CGImageGetBytesPerRow(inImage),
+											 CGImageGetColorSpace(inImage),
+											 CGImageGetBitmapInfo(inImage)
 											 );
-	
+
     // Apply stack blur
     const int imageWidth  = CGImageGetWidth(inImage);
 	const int imageHeight = CGImageGetHeight(inImage);
@@ -87,13 +87,13 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
                                  width:imageWidth
                                 height:imageHeight
                             withRadius:inradius];
-    
+
     // Make new image
 	CGImageRef imageRef = CGBitmapContextCreateImage(ctx);
-	CGContextRelease(ctx);	
-	
+	CGContextRelease(ctx);
+
 	UIImage *finalImage = [UIImage imageWithCGImage:imageRef scale:self.scale orientation:self.imageOrientation];
-	CGImageRelease(imageRef);	
+	CGImageRelease(imageRef);
 	CFRelease(m_DataRef);
     free(m_PixelBuf);
 	return finalImage;
@@ -105,195 +105,221 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 	const int radius = inradius; // Transform unsigned into signed for further operations
 	const int wm = w - 1;
 	const int hm = h - 1;
-	const int wh = w*h;
+	const int wh = w * h;
 	const int div = radius + radius + 1;
 	const int r1 = radius + 1;
-	const int divsum = SQUARE((div+1)>>1);
+	const int divsum = SQUARE((div+1) >> 1);
 
     // Small buffers
-	int stack[div*3];
-	zeroClearInt(stack, div*3);
+	int stack[div * 4];
+	zeroClearInt(stack, div * 4);
 
-	int vmin[MAX(w,h)];
-	zeroClearInt(vmin, MAX(w,h));
+	int vmin[MAX(w, h)];
+	zeroClearInt(vmin, MAX(w, h));
 
     // Large buffers
-	int *r = malloc(wh*sizeof(int));
-	int *g = malloc(wh*sizeof(int));
-	int *b = malloc(wh*sizeof(int));
+	int *r = malloc(wh * sizeof(int));
+	int *g = malloc(wh * sizeof(int));
+	int *b = malloc(wh * sizeof(int));
+	int *a = malloc(wh * sizeof(int));
 	zeroClearInt(r, wh);
 	zeroClearInt(g, wh);
 	zeroClearInt(b, wh);
+	zeroClearInt(a, wh);
 
     const size_t dvcount = 256 * divsum;
     int *dv = malloc(sizeof(int) * dvcount);
-	for (int i = 0;i < dvcount;i++) {
+	for (int i = 0; i < dvcount; i++) {
 		dv[i] = (i / divsum);
 	}
-    
+
     // Variables
     int x, y;
 	int *sir;
-	int routsum,goutsum,boutsum;
-	int rinsum,ginsum,binsum;
-	int rsum, gsum, bsum, p, yp;
+	int routsum, goutsum, boutsum, aoutsum;
+	int rinsum, ginsum, binsum, ainsum;
+	int rsum, gsum, bsum, asum, p, yp;
 	int stackpointer;
 	int stackstart;
 	int rbs;
-    
+
 	int yw = 0, yi = 0;
-	for (y = 0;y < h;y++) {
-		rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-		
-		for(int i = -radius;i <= radius;i++){
-			sir = &stack[(i + radius)*3];
-			int offset = (yi + MIN(wm, MAX(i, 0)))*4;
+	for (y = 0; y < h; y++) {
+		rinsum = ginsum = binsum = ainsum = routsum = goutsum = boutsum = aoutsum = rsum = gsum = bsum = asum = 0;
+
+		for(int i = -radius; i <= radius; i++){
+			sir = &stack[(i + radius) * 4];
+			int offset = (yi + MIN(wm, MAX(i, 0))) * 4;
 			sir[0] = targetBuffer[offset];
 			sir[1] = targetBuffer[offset + 1];
 			sir[2] = targetBuffer[offset + 2];
-			
+			sir[3] = targetBuffer[offset + 3];
+
 			rbs = r1 - abs(i);
 			rsum += sir[0] * rbs;
 			gsum += sir[1] * rbs;
 			bsum += sir[2] * rbs;
+			asum += sir[3] * rbs;
 			if (i > 0){
 				rinsum += sir[0];
 				ginsum += sir[1];
 				binsum += sir[2];
+				ainsum += sir[3];
 			} else {
 				routsum += sir[0];
 				goutsum += sir[1];
 				boutsum += sir[2];
+				aoutsum += sir[3];
 			}
 		}
 		stackpointer = radius;
-		
-		for (x = 0;x < w;x++) {
+
+		for (x = 0; x < w; x++) {
 			r[yi] = dv[rsum];
 			g[yi] = dv[gsum];
 			b[yi] = dv[bsum];
-			
+			a[yi] = dv[asum];
+
 			rsum -= routsum;
 			gsum -= goutsum;
 			bsum -= boutsum;
-			
+			asum -= aoutsum;
+
 			stackstart = stackpointer - radius + div;
-			sir = &stack[(stackstart % div)*3];
-			
+			sir = &stack[(stackstart % div) * 4];
+
 			routsum -= sir[0];
 			goutsum -= sir[1];
 			boutsum -= sir[2];
-			
+			aoutsum -= sir[3];
+
 			if (y == 0){
 				vmin[x] = MIN(x + radius + 1, wm);
 			}
-			
-			int offset = (yw + vmin[x])*4;
+
+			int offset = (yw + vmin[x]) * 4;
 			sir[0] = targetBuffer[offset];
 			sir[1] = targetBuffer[offset + 1];
 			sir[2] = targetBuffer[offset + 2];
+			sir[3] = targetBuffer[offset + 3];
 			rinsum += sir[0];
 			ginsum += sir[1];
 			binsum += sir[2];
-			
+			ainsum += sir[3];
+
 			rsum += rinsum;
 			gsum += ginsum;
 			bsum += binsum;
-			
+			asum += ainsum;
+
 			stackpointer = (stackpointer + 1) % div;
-			sir = &stack[(stackpointer % div)*3];
-			
+			sir = &stack[(stackpointer % div) * 4];
+
 			routsum += sir[0];
 			goutsum += sir[1];
 			boutsum += sir[2];
-			
+			aoutsum += sir[3];
+
 			rinsum -= sir[0];
 			ginsum -= sir[1];
 			binsum -= sir[2];
-			
+			ainsum -= sir[3];
+
 			yi++;
 		}
 		yw += w;
 	}
-    
-	for (x = 0;x < w;x++) {
-		rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-		yp = -radius*w;
-		for(int i = -radius;i <= radius;i++) {
+
+	for (x = 0; x < w; x++) {
+		rinsum = ginsum = binsum = ainsum = routsum = goutsum = boutsum = aoutsum = rsum = gsum = bsum = asum = 0;
+		yp = -radius * w;
+		for(int i = -radius; i <= radius; i++) {
 			yi = MAX(0, yp) + x;
-			
-			sir = &stack[(i + radius)*3];
-			
+
+			sir = &stack[(i + radius) * 4];
+
 			sir[0] = r[yi];
 			sir[1] = g[yi];
 			sir[2] = b[yi];
-			
+			sir[3] = a[yi];
+
 			rbs = r1 - abs(i);
-			
-			rsum += r[yi]*rbs;
-			gsum += g[yi]*rbs;
-			bsum += b[yi]*rbs;
-			
+
+			rsum += r[yi] * rbs;
+			gsum += g[yi] * rbs;
+			bsum += b[yi] * rbs;
+			asum += a[yi] * rbs;
+
 			if (i > 0) {
 				rinsum += sir[0];
 				ginsum += sir[1];
 				binsum += sir[2];
+				ainsum += sir[3];
 			} else {
 				routsum += sir[0];
 				goutsum += sir[1];
 				boutsum += sir[2];
+				aoutsum += sir[3];
 			}
-			
+
 			if (i < hm) {
 				yp += w;
 			}
 		}
 		yi = x;
 		stackpointer = radius;
-		for (y = 0;y < h;y++) {
-			int offset = yi*4;
+		for (y = 0; y < h; y++) {
+			int offset = yi * 4;
 			targetBuffer[offset]     = dv[rsum];
 			targetBuffer[offset + 1] = dv[gsum];
 			targetBuffer[offset + 2] = dv[bsum];
+			targetBuffer[offset + 3] = dv[asum];
 			rsum -= routsum;
 			gsum -= goutsum;
 			bsum -= boutsum;
-			
+			asum -= aoutsum;
+
 			stackstart = stackpointer - radius + div;
-			sir = &stack[(stackstart % div)*3];
-			
+			sir = &stack[(stackstart % div) * 4];
+
 			routsum -= sir[0];
 			goutsum -= sir[1];
 			boutsum -= sir[2];
-			
-			if (x == 0){
-				vmin[y] = MIN(y + r1, hm)*w;
+			aoutsum -= sir[3];
+
+			if (x == 0) {
+				vmin[y] = MIN(y + r1, hm) * w;
 			}
 			p = x + vmin[y];
-			
+
 			sir[0] = r[p];
 			sir[1] = g[p];
 			sir[2] = b[p];
-			
+			sir[3] = a[p];
+
 			rinsum += sir[0];
 			ginsum += sir[1];
 			binsum += sir[2];
-			
+			ainsum += sir[3];
+
 			rsum += rinsum;
 			gsum += ginsum;
 			bsum += binsum;
-			
+			asum += ainsum;
+
 			stackpointer = (stackpointer + 1) % div;
-			sir = &stack[stackpointer*3];
-			
+			sir = &stack[stackpointer * 4];
+
 			routsum += sir[0];
 			goutsum += sir[1];
 			boutsum += sir[2];
-			
+			aoutsum += sir[3];
+
 			rinsum -= sir[0];
 			ginsum -= sir[1];
 			binsum -= sir[2];
-			
+			ainsum -= sir[3];
+
 			yi += w;
 		}
 	}
@@ -301,6 +327,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 	free(r);
 	free(g);
 	free(b);
+	free(a);
     free(dv);
 }
 
@@ -323,7 +350,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
     CGContextRelease(thumbBitmapCtxt);
     UIImage *result = [UIImage imageWithCGImage:tmpThumbImage scale:self.scale orientation:self.imageOrientation];
     CGImageRelease(tmpThumbImage);
-    
+
     return result;
 }
 
