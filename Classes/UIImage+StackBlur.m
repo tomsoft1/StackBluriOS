@@ -36,8 +36,6 @@ either expressed or implied, of the FreeBSD Project.
 
 #import "UIImage+StackBlur.h"
 
-#define SQUARE(i) ((i)*(i))
-inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int) * count); }
 
 @implementation  UIImage (StackBlur)
 
@@ -48,8 +46,10 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 // by  Mario Klingemann
 
 - (UIImage*) stackBlur:(NSUInteger)inradius
-{	
-	if (inradius < 1){
+{
+	int radius=inradius; // Transform unsigned into signed for further operations
+	
+	if (radius<1){
 		return self;
 	}
     // Suggestion xidew to prevent crash if size is null
@@ -60,12 +60,12 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
     //	return [other applyBlendFilter:filterOverlay  other:self context:nil];
 	// First get the image into your data buffer
     CGImageRef inImage = self.CGImage;
-    int nbPerCompt = CGImageGetBitsPerPixel(inImage);
-    if(nbPerCompt != 32){
-        UIImage *tmpImage = [self normalize];
-        inImage = tmpImage.CGImage;
+    int nbPerCompt=CGImageGetBitsPerPixel(inImage);
+    if(nbPerCompt!=32){
+        UIImage *tmpImage=[self normalize];
+        inImage=tmpImage.CGImage;
     }
-    CFMutableDataRef m_DataRef = CFDataCreateMutableCopy(0, 0, CGDataProviderCopyData(CGImageGetDataProvider(inImage)));    
+	CFDataRef m_DataRef = CGDataProviderCopyData(CGImageGetDataProvider(inImage));  
     UInt8 * m_PixelBuf=malloc(CFDataGetLength(m_DataRef));
     CFDataGetBytes(m_DataRef,
                    CFRangeMake(0,CFDataGetLength(m_DataRef)) ,
@@ -78,21 +78,248 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 											 CGImageGetBytesPerRow(inImage),  
 											 CGImageGetColorSpace(inImage),  
 											 CGImageGetBitmapInfo(inImage) 
-											 );
+											 ); 
 	
-    // Apply stack blur
-    const int imageWidth  = CGImageGetWidth(inImage);
-	const int imageHeight = CGImageGetHeight(inImage);
-    [self.class applyStackBlurToBuffer:m_PixelBuf
-                                 width:imageWidth
-                                height:imageHeight
-                            withRadius:inradius];
-    
-    // Make new image
-	CGImageRef imageRef = CGBitmapContextCreateImage(ctx);
+
+	int w=CGImageGetWidth(inImage);
+	int h=CGImageGetHeight(inImage);
+	int wm=w-1;
+	int hm=h-1;
+	int wh=w*h;
+	int div=radius+radius+1;
+	
+	int *r=malloc(wh*sizeof(int));
+	int *g=malloc(wh*sizeof(int));
+	int *b=malloc(wh*sizeof(int));
+	int *a=malloc(wh*sizeof(int));
+	memset(r,0,wh*sizeof(int));
+	memset(g,0,wh*sizeof(int));
+	memset(b,0,wh*sizeof(int));
+	memset(a,0,wh*sizeof(int));
+	int rsum,gsum,bsum,asum,x,y,i,p,yp,yi,yw;
+	int *vmin = malloc(sizeof(int)*MAX(w,h));
+	memset(vmin,0,sizeof(int)*MAX(w,h));
+	int divsum=(div+1)>>1;
+	divsum*=divsum;
+	int *dv=malloc(sizeof(int)*(256*divsum));
+	for (i=0;i<256*divsum;i++){
+		dv[i]=(i/divsum);
+	}
+	
+	yw=yi=0;
+	
+	int *stack=malloc(sizeof(int)*(div*3));
+	int stackpointer;
+	int stackstart;
+	int *sir;
+	int rbs;
+	int r1=radius+1;
+	int routsum,goutsum,boutsum,aoutsum;
+	int rinsum,ginsum,binsum,ainsum;
+	memset(stack,0,sizeof(int)*div*4);
+	
+	for (y=0;y<h;y++){
+		rinsum=ginsum=binsum=ainsum=routsum=goutsum=boutsum=aoutsum=rsum=gsum=bsum=asum=0;
+		
+		for(int i=-radius;i<=radius;i++){
+			sir=&stack[(i+radius)*4];
+			/*			p=m_PixelBuf[yi+MIN(wm,MAX(i,0))];
+			 sir[0]=(p & 0xff0000)>>16;
+			 sir[1]=(p & 0x00ff00)>>8;
+			 sir[2]=(p & 0x0000ff);
+			 */
+			int offset=(yi+MIN(wm,MAX(i,0)))*4;
+			sir[0]=m_PixelBuf[offset];
+			sir[1]=m_PixelBuf[offset+1];
+			sir[2]=m_PixelBuf[offset+2];
+			sir[3]=m_PixelBuf[offset+3];
+
+			rbs=r1-abs(i);
+			rsum+=sir[0]*rbs;
+			gsum+=sir[1]*rbs;
+			bsum+=sir[2]*rbs;
+			asum+=sir[3]*rbs;
+			if (i>0){
+				rinsum+=sir[0];
+				ginsum+=sir[1];
+				binsum+=sir[2];
+				ainsum+=sir[3];
+			} else {
+				routsum+=sir[0];
+				goutsum+=sir[1];
+				boutsum+=sir[2];
+				aoutsum+=sir[3];
+			}
+		}
+		stackpointer=radius;
+		
+		
+		for (x=0;x<w;x++){
+			r[yi]=dv[rsum];
+			g[yi]=dv[gsum];
+			b[yi]=dv[bsum];
+			a[yi]=dv[asum];
+
+			rsum-=routsum;
+			gsum-=goutsum;
+			bsum-=boutsum;
+			asum-=aoutsum;
+
+			stackstart=stackpointer-radius+div;
+			sir=&stack[(stackstart%div)*4];
+			
+			routsum-=sir[0];
+			goutsum-=sir[1];
+			boutsum-=sir[2];
+			aoutsum-=sir[3];
+
+			if(y==0){
+				vmin[x]=MIN(x+radius+1,wm);
+			}
+			
+			/*			p=m_PixelBuf[yw+vmin[x]];
+			 
+			 sir[0]=(p & 0xff0000)>>16;
+			 sir[1]=(p & 0x00ff00)>>8;
+			 sir[2]=(p & 0x0000ff);
+			 */
+			int offset=(yw+vmin[x])*4;
+			sir[0]=m_PixelBuf[offset];
+			sir[1]=m_PixelBuf[offset+1];
+			sir[2]=m_PixelBuf[offset+2];
+			sir[3]=m_PixelBuf[offset+3];
+			rinsum+=sir[0];
+			ginsum+=sir[1];
+			binsum+=sir[2];
+			ainsum+=sir[3];
+
+			rsum+=rinsum;
+			gsum+=ginsum;
+			bsum+=binsum;
+			asum+=ainsum;
+
+			stackpointer=(stackpointer+1)%div;
+			sir=&stack[((stackpointer)%div)*4];
+			
+			routsum+=sir[0];
+			goutsum+=sir[1];
+			boutsum+=sir[2];
+			aoutsum+=sir[3];
+
+			rinsum-=sir[0];
+			ginsum-=sir[1];
+			binsum-=sir[2];
+			ainsum-=sir[3];
+
+			yi++;
+		}
+		yw+=w;
+	}
+	for (x=0;x<w;x++){
+		rinsum=ginsum=binsum=ainsum=routsum=goutsum=boutsum=aoutsum=rsum=gsum=bsum=asum=0;
+		yp=-radius*w;
+		for(i=-radius;i<=radius;i++){
+			yi=MAX(0,yp)+x;
+			
+			sir=&stack[(i+radius)*4];
+			
+			sir[0]=r[yi];
+			sir[1]=g[yi];
+			sir[2]=b[yi];
+			sir[3]=a[yi];
+
+			rbs=r1-abs(i);
+			
+			rsum+=r[yi]*rbs;
+			gsum+=g[yi]*rbs;
+			bsum+=b[yi]*rbs;
+			asum+=a[yi]*rbs;
+
+			if (i>0){
+				rinsum+=sir[0];
+				ginsum+=sir[1];
+				binsum+=sir[2];
+				ainsum+=sir[3];
+			} else {
+				routsum+=sir[0];
+				goutsum+=sir[1];
+				boutsum+=sir[2];
+				aoutsum+=sir[3];
+			}
+			
+			if(i<hm){
+				yp+=w;
+			}
+		}
+		yi=x;
+		stackpointer=radius;
+		for (y=0;y<h;y++){
+			//			m_PixelBuf[yi]=0xff000000 | (dv[rsum]<<16) | (dv[gsum]<<8) | dv[bsum];
+			int offset=yi*4;
+			m_PixelBuf[offset]=dv[rsum];
+			m_PixelBuf[offset+1]=dv[gsum];
+			m_PixelBuf[offset+2]=dv[bsum];
+			m_PixelBuf[offset+3]=dv[asum];
+			rsum-=routsum;
+			gsum-=goutsum;
+			bsum-=boutsum;
+			asum-=aoutsum;
+
+			stackstart=stackpointer-radius+div;
+			sir=&stack[(stackstart%div)*4];
+			
+			routsum-=sir[0];
+			goutsum-=sir[1];
+			boutsum-=sir[2];
+			aoutsum-=sir[3];
+
+			if(x==0){
+				vmin[y]=MIN(y+r1,hm)*w;
+			}
+			p=x+vmin[y];
+			
+			sir[0]=r[p];
+			sir[1]=g[p];
+			sir[2]=b[p];
+			sir[3]=a[p];
+
+			rinsum+=sir[0];
+			ginsum+=sir[1];
+			binsum+=sir[2];
+			ainsum+=sir[3];
+
+			rsum+=rinsum;
+			gsum+=ginsum;
+			bsum+=binsum;
+			asum+=ainsum;
+
+			stackpointer=(stackpointer+1)%div;
+			sir=&stack[(stackpointer)*4];
+			
+			routsum+=sir[0];
+			goutsum+=sir[1];
+			boutsum+=sir[2];
+			aoutsum+=sir[3];
+
+			rinsum-=sir[0];
+			ginsum-=sir[1];
+			binsum-=sir[2];
+			ainsum-=sir[3];
+
+			yi+=w;
+		}
+	}
+	free(r);
+	free(g);
+	free(b);
+	free(a);
+	free(vmin);
+	free(dv);
+	free(stack);
+	CGImageRef imageRef = CGBitmapContextCreateImage(ctx);  
 	CGContextRelease(ctx);	
 	
-	UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
+	UIImage *finalImage = [UIImage imageWithCGImage:imageRef scale:self.scale orientation:self.imageOrientation];
 	CGImageRelease(imageRef);	
 	CFRelease(m_DataRef);
     free(m_PixelBuf);
@@ -100,231 +327,27 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 }
 
 
-+ (void) applyStackBlurToBuffer:(UInt8*)targetBuffer width:(const int)w height:(const int)h withRadius:(NSUInteger)inradius {
-    // Constants
-	const int radius = inradius; // Transform unsigned into signed for further operations
-	const int wm = w - 1;
-	const int hm = h - 1;
-	const int wh = w*h;
-	const int div = radius + radius + 1;
-	const int r1 = radius + 1;
-	const int divsum = SQUARE((div+1)>>1);
-
-    // Small buffers
-	int stack[div*3];
-	zeroClearInt(stack, div*3);
-
-	int vmin[MAX(w,h)];
-	zeroClearInt(vmin, MAX(w,h));
-
-    // Large buffers
-	int *r = malloc(wh*sizeof(int));
-	int *g = malloc(wh*sizeof(int));
-	int *b = malloc(wh*sizeof(int));
-	zeroClearInt(r, wh);
-	zeroClearInt(g, wh);
-	zeroClearInt(b, wh);
-
-    const size_t dvcount = 256 * divsum;
-    int *dv = malloc(sizeof(int) * dvcount);
-	for (int i = 0;i < dvcount;i++) {
-		dv[i] = (i / divsum);
-	}
-    
-    // Variables
-    int x, y;
-	int *sir;
-	int routsum,goutsum,boutsum;
-	int rinsum,ginsum,binsum;
-	int rsum, gsum, bsum, p, yp;
-	int stackpointer;
-	int stackstart;
-	int rbs;
-    
-	int yw = 0, yi = 0;
-	for (y = 0;y < h;y++) {
-		rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-		
-		for(int i = -radius;i <= radius;i++){
-			sir = &stack[(i + radius)*3];
-			int offset = (yi + MIN(wm, MAX(i, 0)))*4;
-			sir[0] = targetBuffer[offset];
-			sir[1] = targetBuffer[offset + 1];
-			sir[2] = targetBuffer[offset + 2];
-			
-			rbs = r1 - abs(i);
-			rsum += sir[0] * rbs;
-			gsum += sir[1] * rbs;
-			bsum += sir[2] * rbs;
-			if (i > 0){
-				rinsum += sir[0];
-				ginsum += sir[1];
-				binsum += sir[2];
-			} else {
-				routsum += sir[0];
-				goutsum += sir[1];
-				boutsum += sir[2];
-			}
-		}
-		stackpointer = radius;
-		
-		for (x = 0;x < w;x++) {
-			r[yi] = dv[rsum];
-			g[yi] = dv[gsum];
-			b[yi] = dv[bsum];
-			
-			rsum -= routsum;
-			gsum -= goutsum;
-			bsum -= boutsum;
-			
-			stackstart = stackpointer - radius + div;
-			sir = &stack[(stackstart % div)*3];
-			
-			routsum -= sir[0];
-			goutsum -= sir[1];
-			boutsum -= sir[2];
-			
-			if (y == 0){
-				vmin[x] = MIN(x + radius + 1, wm);
-			}
-			
-			int offset = (yw + vmin[x])*4;
-			sir[0] = targetBuffer[offset];
-			sir[1] = targetBuffer[offset + 1];
-			sir[2] = targetBuffer[offset + 2];
-			rinsum += sir[0];
-			ginsum += sir[1];
-			binsum += sir[2];
-			
-			rsum += rinsum;
-			gsum += ginsum;
-			bsum += binsum;
-			
-			stackpointer = (stackpointer + 1) % div;
-			sir = &stack[(stackpointer % div)*3];
-			
-			routsum += sir[0];
-			goutsum += sir[1];
-			boutsum += sir[2];
-			
-			rinsum -= sir[0];
-			ginsum -= sir[1];
-			binsum -= sir[2];
-			
-			yi++;
-		}
-		yw += w;
-	}
-    
-	for (x = 0;x < w;x++) {
-		rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-		yp = -radius*w;
-		for(int i = -radius;i <= radius;i++) {
-			yi = MAX(0, yp) + x;
-			
-			sir = &stack[(i + radius)*3];
-			
-			sir[0] = r[yi];
-			sir[1] = g[yi];
-			sir[2] = b[yi];
-			
-			rbs = r1 - abs(i);
-			
-			rsum += r[yi]*rbs;
-			gsum += g[yi]*rbs;
-			bsum += b[yi]*rbs;
-			
-			if (i > 0) {
-				rinsum += sir[0];
-				ginsum += sir[1];
-				binsum += sir[2];
-			} else {
-				routsum += sir[0];
-				goutsum += sir[1];
-				boutsum += sir[2];
-			}
-			
-			if (i < hm) {
-				yp += w;
-			}
-		}
-		yi = x;
-		stackpointer = radius;
-		for (y = 0;y < h;y++) {
-			int offset = yi*4;
-			targetBuffer[offset]     = dv[rsum];
-			targetBuffer[offset + 1] = dv[gsum];
-			targetBuffer[offset + 2] = dv[bsum];
-			rsum -= routsum;
-			gsum -= goutsum;
-			bsum -= boutsum;
-			
-			stackstart = stackpointer - radius + div;
-			sir = &stack[(stackstart % div)*3];
-			
-			routsum -= sir[0];
-			goutsum -= sir[1];
-			boutsum -= sir[2];
-			
-			if (x == 0){
-				vmin[y] = MIN(y + r1, hm)*w;
-			}
-			p = x + vmin[y];
-			
-			sir[0] = r[p];
-			sir[1] = g[p];
-			sir[2] = b[p];
-			
-			rinsum += sir[0];
-			ginsum += sir[1];
-			binsum += sir[2];
-			
-			rsum += rinsum;
-			gsum += ginsum;
-			bsum += binsum;
-			
-			stackpointer = (stackpointer + 1) % div;
-			sir = &stack[stackpointer*3];
-			
-			routsum += sir[0];
-			goutsum += sir[1];
-			boutsum += sir[2];
-			
-			rinsum -= sir[0];
-			ginsum -= sir[1];
-			binsum -= sir[2];
-			
-			yi += w;
-		}
-	}
-
-	free(r);
-	free(g);
-	free(b);
-    free(dv);
-}
-
-
 - (UIImage *) normalize {
-    int width = self.size.width;
-    int height = self.size.height;
+    
     CGColorSpaceRef genericColorSpace = CGColorSpaceCreateDeviceRGB();
     CGContextRef thumbBitmapCtxt = CGBitmapContextCreate(NULL,
-                                                         width,
-                                                         height,
-                                                         8, (4 * width),
+                                                         
+                                                         self.size.width,
+                                                         self.size.height,
+                                                         8, (4 * self.size.width),
                                                          genericColorSpace,
                                                          kCGImageAlphaPremultipliedLast);
     CGColorSpaceRelease(genericColorSpace);
     CGContextSetInterpolationQuality(thumbBitmapCtxt, kCGInterpolationDefault);
-    CGRect destRect = CGRectMake(0, 0, width, height);
+    CGRect destRect = CGRectMake(0, 0, self.size.width, self.size.height);
     CGContextDrawImage(thumbBitmapCtxt, destRect, self.CGImage);
     CGImageRef tmpThumbImage = CGBitmapContextCreateImage(thumbBitmapCtxt);
-    CGContextRelease(thumbBitmapCtxt);
-    UIImage *result = [UIImage imageWithCGImage:tmpThumbImage];
+    CGContextRelease(thumbBitmapCtxt);   
+    UIImage *result = [UIImage imageWithCGImage:tmpThumbImage scale:self.scale orientation:self.imageOrientation];
     CGImageRelease(tmpThumbImage);
-    
-    return result;
+
+    return result;   
 }
+
 
 @end
