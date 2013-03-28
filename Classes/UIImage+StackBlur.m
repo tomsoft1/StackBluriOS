@@ -92,7 +92,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 	CGImageRef imageRef = CGBitmapContextCreateImage(ctx);
 	CGContextRelease(ctx);	
 	
-	UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
+	UIImage *finalImage = [UIImage imageWithCGImage:imageRef scale:self.scale orientation:self.imageOrientation];
 	CGImageRelease(imageRef);	
 	CFRelease(m_DataRef);
     free(m_PixelBuf);
@@ -321,7 +321,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
     CGContextDrawImage(thumbBitmapCtxt, destRect, self.CGImage);
     CGImageRef tmpThumbImage = CGBitmapContextCreateImage(thumbBitmapCtxt);
     CGContextRelease(thumbBitmapCtxt);
-    UIImage *result = [UIImage imageWithCGImage:tmpThumbImage];
+    UIImage *result = [UIImage imageWithCGImage:tmpThumbImage scale:self.scale orientation:self.imageOrientation];
     CGImageRelease(tmpThumbImage);
     
     return result;
