@@ -92,8 +92,8 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 	CGImageRef imageRef = CGBitmapContextCreateImage(ctx);
 	CGContextRelease(ctx);	
 	
-	UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
-	CGImageRelease(imageRef);	
+    UIImage *finalImage = [[UIImage alloc] initWithCGImage:imageRef scale:[UIScreen mainScreen].scale orientation:self.imageOrientation];
+	CGImageRelease(imageRef);
 	CFRelease(m_DataRef);
     free(m_PixelBuf);
 	return finalImage;
@@ -127,7 +127,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 
     const size_t dvcount = 256 * divsum;
     int *dv = malloc(sizeof(int) * dvcount);
-	for (int i = 0;i < dvcount;i++) {
+	for (size_t i = 0;i < dvcount;i++) {
 		dv[i] = (i / divsum);
 	}
     
@@ -321,7 +321,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
     CGContextDrawImage(thumbBitmapCtxt, destRect, self.CGImage);
     CGImageRef tmpThumbImage = CGBitmapContextCreateImage(thumbBitmapCtxt);
     CGContextRelease(thumbBitmapCtxt);
-    UIImage *result = [UIImage imageWithCGImage:tmpThumbImage];
+    UIImage *result = [[UIImage alloc] initWithCGImage:tmpThumbImage scale:[UIScreen mainScreen].scale orientation:self.imageOrientation];
     CGImageRelease(tmpThumbImage);
     
     return result;
