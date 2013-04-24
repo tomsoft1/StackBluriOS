@@ -92,8 +92,8 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 	CGImageRef imageRef = CGBitmapContextCreateImage(ctx);
 	CGContextRelease(ctx);	
 	
-	UIImage *finalImage = [UIImage imageWithCGImage:imageRef];
-	CGImageRelease(imageRef);	
+    UIImage *finalImage = [[UIImage alloc] initWithCGImage:imageRef scale:[UIScreen mainScreen].scale orientation:UIImageOrientationUp];
+	CGImageRelease(imageRef);
 	CFRelease(m_DataRef);
     free(m_PixelBuf);
 	return finalImage;
