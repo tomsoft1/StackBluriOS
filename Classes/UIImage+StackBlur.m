@@ -65,7 +65,9 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
         UIImage *tmpImage = [self normalize];
         inImage = tmpImage.CGImage;
     }
-    CFMutableDataRef m_DataRef = CFDataCreateMutableCopy(0, 0, CGDataProviderCopyData(CGImageGetDataProvider(inImage)));    
+    CFDataRef dataRef = CGDataProviderCopyData(CGImageGetDataProvider(inImage));
+    CFMutableDataRef m_DataRef = CFDataCreateMutableCopy(0, 0, dataRef);
+    CFRelease(dataRef);    
     UInt8 * m_PixelBuf=malloc(CFDataGetLength(m_DataRef));
     CFDataGetBytes(m_DataRef,
                    CFRangeMake(0,CFDataGetLength(m_DataRef)) ,
