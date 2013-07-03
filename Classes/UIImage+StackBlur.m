@@ -129,7 +129,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 
     const size_t dvcount = 256 * divsum;
     int *dv = malloc(sizeof(int) * dvcount);
-	for (int i = 0;i < dvcount;i++) {
+	for (int i = 0;(size_t)i < dvcount;i++) {
 		dv[i] = (i / divsum);
 	}
     
