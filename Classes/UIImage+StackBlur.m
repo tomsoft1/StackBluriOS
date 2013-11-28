@@ -316,7 +316,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
                                                          height,
                                                          8, (4 * width),
                                                          genericColorSpace,
-                                                         kCGImageAlphaPremultipliedLast);
+                                                         (CGBitmapInfo)kCGImageAlphaPremultipliedLast);
     CGColorSpaceRelease(genericColorSpace);
     CGContextSetInterpolationQuality(thumbBitmapCtxt, kCGInterpolationDefault);
     CGRect destRect = CGRectMake(0, 0, width, height);
