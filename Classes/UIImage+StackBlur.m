@@ -60,7 +60,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
     //	return [other applyBlendFilter:filterOverlay  other:self context:nil];
 	// First get the image into your data buffer
     CGImageRef inImage = self.CGImage;
-    int nbPerCompt = CGImageGetBitsPerPixel(inImage);
+    int nbPerCompt = (int)CGImageGetBitsPerPixel(inImage);
     if(nbPerCompt != 32){
         UIImage *tmpImage = [self normalize];
         inImage = tmpImage.CGImage;
@@ -83,8 +83,8 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 											 );
 	
     // Apply stack blur
-    const int imageWidth  = CGImageGetWidth(inImage);
-	const int imageHeight = CGImageGetHeight(inImage);
+    const int imageWidth  = (int)CGImageGetWidth(inImage);
+	const int imageHeight = (int)CGImageGetHeight(inImage);
     [self.class applyStackBlurToBuffer:m_PixelBuf
                                  width:imageWidth
                                 height:imageHeight
@@ -104,7 +104,7 @@ inline static void zeroClearInt(int* p, size_t count) { memset(p, 0, sizeof(int)
 
 + (void) applyStackBlurToBuffer:(UInt8*)targetBuffer width:(const int)w height:(const int)h withRadius:(NSUInteger)inradius {
     // Constants
-	const int radius = inradius; // Transform unsigned into signed for further operations
+	const int radius = (int)inradius; // Transform unsigned into signed for further operations
 	const int wm = w - 1;
 	const int hm = h - 1;
 	const int wh = w*h;
