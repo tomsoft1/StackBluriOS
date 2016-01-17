@@ -11,6 +11,7 @@
 
 @implementation stackBlurViewController
 
+double currVal;
 
 
 /*
@@ -37,6 +38,7 @@
     [super viewDidLoad];
 	source=[UIImage imageNamed:@"testIma.jpg"];
 	imagePreview.image=source;
+    currVal = 0;
 }
 
 
@@ -63,8 +65,12 @@
 
 - (IBAction) sliderChanged:(UISlider *)sender
 {
-	NSLog(@"Slider:");
-	imagePreview.image=[source stackBlur:sender.value];
+    double sVal = sender.value;
+	NSLog(@"Slider Value:%f", sVal);
+    if (abs(currVal-sVal) >= 1) {
+	imagePreview.image=[source stackBlur:sVal];
+    currVal = sVal;
+    }
 }	
 - (void)dealloc {
     [imagePreview dealloc];
